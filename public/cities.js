@@ -1,4 +1,48 @@
-document.getElementById('next').addEventListener('click', async ({id, name, photo}) => {
+let currentPage = 0;
+let pageSize = 10;
+
+document.getElementById('next').addEventListener('click', async () => {await nextPage()})
+document.getElementById('previous').addEventListener('click', async () => {await previousPage()})
+document.getElementById('authorise').addEventListener('click', getFirstPage);
+
+async function getFirstPage() {
+    window.location.replace('http://localhost:8081/');
+}
+
+async function nextPage() {
+    await clearPage();
+    currentPage++;
+    await showResult();
+}
+
+async function previousPage() {
+    await clearPage();
+    currentPage--;
+    await showResult();
+}
+
+async function clearPage() {
+    if(document.getElementById("city-table") != null) {
+        document.getElementById("table-of-cities").textContent = '';
+    }
+}
+
+
+function citiesHtml({id, name, photo}) {
+    const citiesList = document.getElementById('table-of-cities');
+    citiesList.insertAdjacentHTML('beforeend', `
+        <div class="form-check" id="city-table">
+            <table style="border:3px solid coral">
+                <tr>
+                    <td style="text-align:center;width:20px">${id}</td>
+                    <td style="text-align:center;width:100px">${name}</td>
+                    <td style="text-align:center;width:100px"><img src="${photo}" alt="Wrong reference to photo" height="300" width="500"></td>
+                </tr>
+            </table>
+        </div>`);
+}
+
+async function showResult() {
     const res = (await fetch('http://localhost:8081/pageRequest', {
         method: 'POST',
         credentials: 'include',
@@ -8,53 +52,10 @@ document.getElementById('next').addEventListener('click', async ({id, name, phot
         },
         mode: 'cors',
         redirect: 'follow',
-        body: '{\n' +
-            '  "businessEntity": {\n' +
-            '    "currentPage": 0,\n' +
-            '    "pageSize": 10\n' +
-            '  }\n' +
-            '}'
+        body: `{"businessEntity": {"currentPage": ${currentPage},"pageSize": ${pageSize}}}`
     })).json()
-        .then(t => t["businessEntity"].entities.forEach(x => {citiesHtml(x)}))
+        .then(t => t["businessEntity"].entities.forEach(x => {
+            citiesHtml(x)
+        }))
     console.log(res);
-})
-
-document.getElementById('previous').addEventListener('click', async () => {
-    let message = {};
-    message.businessEntity = {};
-    message.businessEntity.currentPage = 0;
-    message.businessEntity.pageSize = 10;
-
-    const res = await fetch('http://localhost:8081/pageRequest', {
-        method: 'POST',
-        headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Request-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
-            'Content-Type': 'text/plain'
-        },
-        body: JSON.stringify(message)
-    })
-    let result = res.json();
-    console.log(result);
-})
-
-async function getFirstPage() {
-    window.location.replace('http://localhost:8081/');
-}
-
-document.getElementById('authorise').addEventListener('click', getFirstPage);
-
-
-function citiesHtml({id, name, photo}) {
-    const citiesList = document.getElementById('cities');
-    citiesList.insertAdjacentHTML('beforeend', `
-        <div class="form-check">
-            <table>
-                <tr>
-                    <td>${id}</td>
-                    <td>${name}</td>
-                    <td>${photo}</td>
-                </tr>
-            </table>
-        </div>`);
 }
