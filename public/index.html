@@ -11,12 +11,16 @@
 <div class="container"></div>
 <h1 class="mb-3" style="color:fuchsia;text-align:center">Cities</h1>
 <div id="cities">
-    <label for="searchTxt">
-        <input name="searchTxt" type="text" maxlength="512" id="searchTxt" class="searchField"/>
-    </label>
-    <button type="button" class="btn btn-primary" id="authorise" style="float:right">Authorise</button>
+    <div style="height:100%;display:flex;align-items:center;justify-content:center;">
+        <label for="searchTxt">
+            <input name="searchTxt" type="text" maxlength="512" id="searchTxt"/>
+        </label>
+        <button type="button" class="btn btn-primary" id="authorise" style="float:right">Authorise</button>
+    </div>
     <br/>
-    <div id="table-of-cities"></div>
+    <div style="height:100%;display:flex;align-items:center;justify-content:center;">
+        <table id="table-of-cities" style="border:3px solid coral"></table>
+    </div>
     <div style="height:100%;display:flex;align-items:center;justify-content:center;">
         <button type="button" class="btn btn-primary" id="previous" style="
     border:none;color:green;padding: 15px 32px;text-align:center;
