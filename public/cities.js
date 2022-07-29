@@ -61,6 +61,8 @@ async function showResult() {
         .then(t => {
             hasNextPage = t["businessEntity"].hasNextPage;
             hasPreviousPage = t["businessEntity"].hasPreviousPage;
+            document.getElementById('next').disabled = !hasNextPage;
+            document.getElementById('previous').disabled = !hasPreviousPage;
             console.log(hasNextPage);
             console.log(hasPreviousPage);
             t["businessEntity"].entities.forEach(x => {
