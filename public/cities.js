@@ -7,11 +7,15 @@ let inputTextValue;
 window.onkeyup = keyup;
 document.getElementById('next').addEventListener('click', async () => {await nextPage()})
 document.getElementById('previous').addEventListener('click', async () => {await previousPage()})
-document.getElementById('authorise').addEventListener('click', getFirstPage);
+document.getElementById('authorise').addEventListener('click', logout);
 window.addEventListener('DOMContentLoaded', nextPage)
 
 async function getFirstPage() {
     window.location.replace('http://localhost:8081/');
+}
+
+async function logout() {
+    window.location.replace('http://localhost:8081/logout');
 }
 
 async function nextPage() {
@@ -57,7 +61,12 @@ async function showResult() {
         mode: 'cors',
         redirect: 'follow',
         body: `{"businessEntity": {"currentPage": ${currentPage},"pageSize": ${pageSize}}}`
-    })).json()
+    }))
+    let url = res.url;
+    if (url.match("login")) {
+        await getFirstPage();
+    }
+    const result = res.json()
         .then(t => {
             hasNextPage = t["businessEntity"].hasNextPage;
             hasPreviousPage = t["businessEntity"].hasPreviousPage;
@@ -148,7 +157,13 @@ async function updateCity(id, name, photo) {
         mode: 'cors',
         redirect: 'follow',
         body: `{"businessEntity":{"entities": [{"id": "${id}", "name": "${name}", "photo": "${photo}"}]}}`
-    })).json()
+    }))
+    let status = res.status;
+    if (status !== 200) {
+        await alert("You don't have access rights to edit cities list!");
+        return;
+    }
+    const result = res.json()
         .then(t => t["businessEntity"].entities.forEach(x => {
             citiesHtml(x)
         }))
