@@ -45,7 +45,7 @@ function citiesHtml({id, name, photo}) {
                     <td id="curId" style="text-align:center;width:20px;border:3px solid coral">${id}</td>
                     <td style="text-align:center;width:100px;border:3px solid coral">${name}</td>
                     <td style="text-align:center;width:100px;border:3px solid coral"><img src="${photo}" alt="Wrong reference to photo" height="300" width="500"></td>
-                    <button type="button" onclick="findCityForEdit('${name}')" id="edit-${id}">Edit</button>
+                    <button type="button" onclick="findCityForEdit('${name}')" id="edit-${id}" style="background-color:red;color:bisque">Edit</button>
                 </tr>
             </table>`);
 }
@@ -107,12 +107,12 @@ async function findCityForEdit(name) {
     const citiesList = document.getElementById('table-of-cities');
     citiesList.insertAdjacentHTML('beforeend', `
         <label for="newName">
-            <input name="newName" type="text" maxlength="512" id="newName"/>
+            &nbsp;&nbsp;New name of city:&nbsp;&nbsp;<input name="newName" type="text" maxlength="512" id="newName"/>
         </label>
         <label for="newPhoto">
-            <input name="newPhoto" type="text" maxlength="512" id="newPhoto"/>
+            &nbsp;&nbsp;New photo of city:&nbsp;&nbsp;&nbsp;<input name="newPhoto" type="text" maxlength="512" id="newPhoto"/>
         </label>
-        <button type="button" id="submitButton" onclick="goUpdateCity()">Submit</button>`);
+        <button type="button" id="submitButton" style="background-color:red;color:bisque" onclick="goUpdateCity()">Submit</button>`);
 
     console.log(res);
 }
@@ -160,6 +160,7 @@ async function updateCity(id, name, photo) {
     }))
     let status = res.status;
     if (status !== 200) {
+        await nextPage();
         await alert("You don't have access rights to edit cities list!");
         return;
     }
