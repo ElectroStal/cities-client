@@ -1,12 +1,14 @@
-let currentPage = 0;
+let currentPage = -1;
 let pageSize = 10;
-let editingId;
+let hasNextPage = true;
+let hasPreviousPage = false;
+let inputTextValue;
 
+window.onkeyup = keyup;
 document.getElementById('next').addEventListener('click', async () => {await nextPage()})
 document.getElementById('previous').addEventListener('click', async () => {await previousPage()})
 document.getElementById('authorise').addEventListener('click', getFirstPage);
-// document.getElementById("submitButton").addEventListener('click',async () => {await updateCity(editingId,
-//     document.getElementById('newName').textContent, document.getElementById('newPhoto').textContent)})
+window.addEventListener('DOMContentLoaded', nextPage)
 
 async function getFirstPage() {
     window.location.replace('http://localhost:8081/');
@@ -36,9 +38,9 @@ function citiesHtml({id, name, photo}) {
     citiesList.insertAdjacentHTML('beforeend', `
             <table style="border:3px solid coral">
                 <tr id="city-table">
-                    <td id="curId" style="text-align:center;width:20px">${id}</td>
-                    <td style="text-align:center;width:100px">${name}</td>
-                    <td style="text-align:center;width:100px"><img src="${photo}" alt="Wrong reference to photo" height="300" width="500"></td>
+                    <td id="curId" style="text-align:center;width:20px;border:3px solid coral">${id}</td>
+                    <td style="text-align:center;width:100px;border:3px solid coral">${name}</td>
+                    <td style="text-align:center;width:100px;border:3px solid coral"><img src="${photo}" alt="Wrong reference to photo" height="300" width="500"></td>
                     <button type="button" onclick="findCityForEdit('${name}')" id="edit-${id}">Edit</button>
                 </tr>
             </table>`);
@@ -56,14 +58,17 @@ async function showResult() {
         redirect: 'follow',
         body: `{"businessEntity": {"currentPage": ${currentPage},"pageSize": ${pageSize}}}`
     })).json()
-        .then(t => t["businessEntity"].entities.forEach(x => {
-            citiesHtml(x)
-        }))
+        .then(t => {
+            hasNextPage = t["businessEntity"].hasNextPage;
+            hasPreviousPage = t["businessEntity"].hasPreviousPage;
+            console.log(hasNextPage);
+            console.log(hasPreviousPage);
+            t["businessEntity"].entities.forEach(x => {
+                citiesHtml(x)
+            })
+        })
     console.log(res);
 }
-
-window.onkeyup = keyup;
-var inputTextValue;
 
 function keyup(e) {
     inputTextValue = e.target.value;
@@ -147,9 +152,3 @@ async function updateCity(id, name, photo) {
         }))
     console.log(res);
 }
-
-// let elements = document.getElementsByClassName("button-edit");
-//
-// for (let i = 0; i < elements.length; i++) {
-//     elements[i].addEventListener('click', async () => {await findCity(elements[i].id.substring(0, elements[i].id.lastIndexOf('-')))}, false);
-// }
