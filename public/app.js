@@ -11,11 +11,11 @@ document.getElementById('authorise').addEventListener('click', logout);
 window.addEventListener('DOMContentLoaded', nextPage)
 
 async function getFirstPage() {
-    window.location.replace('http://app_cities:8081/');
+    window.location.replace('http://localhost:8083/');
 }
 
 async function logout() {
-    window.location.replace('http://app_cities:8081/logout');
+    window.location.replace('http://localhost:8083/logout');
 }
 
 async function nextPage() {
@@ -51,7 +51,7 @@ function citiesHtml({id, name, photo}) {
 }
 
 async function showResult() {
-    const res = (await fetch('http://app_cities:8081/pageRequest', {
+    const res = (await fetch('http://localhost:8083/pageRequest', {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -90,7 +90,7 @@ function keyup(e) {
 
 async function findCityForEdit(name) {
     await clearPage();
-    const res = (await fetch('http://app_cities:8081/cityFind', {
+    const res = (await fetch('http://localhost:8083/cityFind', {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -105,6 +105,7 @@ async function findCityForEdit(name) {
             citiesHtml(x)
         }))
     const citiesList = document.getElementById('table-of-cities');
+    currentPage = -1;
     citiesList.insertAdjacentHTML('beforeend', `
         <label for="newName">
             &nbsp;&nbsp;New name of city:&nbsp;&nbsp;<input name="newName" type="text" maxlength="512" id="newName"/>
@@ -128,7 +129,7 @@ async function goUpdateCity() {
 
 async function findCity(name) {
     await clearPage();
-    const res = (await fetch('http://app_cities:8081/cityFind', {
+    const res = (await fetch('http://localhost:8083/cityFind', {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -142,12 +143,13 @@ async function findCity(name) {
         .then(t => t["businessEntity"].entities.forEach(x => {
             citiesHtml(x)
         }))
+    currentPage = -1;
     console.log(res);
 }
 
 async function updateCity(id, name, photo) {
     await clearPage();
-    const res = (await fetch('http://app_cities:8081/cityUpdate', {
+    const res = (await fetch('http://localhost:8083/cityUpdate', {
         method: 'POST',
         credentials: 'include',
         headers: {

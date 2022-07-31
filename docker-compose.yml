@@ -1,13 +1,21 @@
-version: "3.8"
+version: '3.8'
+
 services:
   cities-client:
     build:
-      context: .
+      context: ./
       dockerfile: Dockerfile
     command: npm run start
-    container_name: frontend
+    image: cities-client:1
+    container_name: cl_cities
     ports:
-      - "3000:3000"
+      - "8084:3000"
+    links:
+      - app_cities
+    depends_on:
+      - app_cities
     volumes:
-      - ./:/frontend
-      - /frontend/node_modules
+      - ./:/cl_cities
+      - /cl_cities/node_modules
+    environment:
+      - API_BASE_URL=app_cities:8083/
