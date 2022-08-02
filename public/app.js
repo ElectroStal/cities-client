@@ -105,7 +105,6 @@ async function findCityForEdit(name) {
             citiesHtml(x)
         }))
     const citiesList = document.getElementById('table-of-cities');
-    currentPage = -1;
     citiesList.insertAdjacentHTML('beforeend', `
         <label for="newName">
             &nbsp;&nbsp;New name of city:&nbsp;&nbsp;<input name="newName" type="text" maxlength="512" id="newName"/>
@@ -118,7 +117,6 @@ async function findCityForEdit(name) {
     console.log(res);
 }
 
-// eslint-disable-next-line no-unused-vars
 async function goUpdateCity() {
     await updateCity(
         document.getElementById("curId").textContent,
@@ -143,8 +141,9 @@ async function findCity(name) {
         .then(t => t["businessEntity"].entities.forEach(x => {
             citiesHtml(x)
         }))
-    currentPage = -1;
     console.log(res);
+    currentPage = -1;
+    hasPreviousPage = false;
 }
 
 async function updateCity(id, name, photo) {
