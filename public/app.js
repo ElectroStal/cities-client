@@ -37,22 +37,23 @@ async function clearPage() {
 }
 
 
-function citiesHtml({id, name, photo}) {
+function citiesHtml(id, name, photo) {
     const citiesList = document.getElementById('table-of-cities');
     citiesList.insertAdjacentHTML('beforeend', `
             <table style="border:3px solid coral">
                 <tr id="city-table">
-                    <td id="curId" style="text-align:center;width:20px;border:3px solid coral">${id}</td>
-                    <td style="text-align:center;width:100px;border:3px solid coral">${name}</td>
-                    <td style="text-align:center;width:100px;border:3px solid coral"><img src="${photo}" alt="Wrong reference to photo" height="300" width="500"></td>
+                    <td style="text-align:center;width:20px;border:3px solid coral">${id}</td>
+                    <td id="curName" style="text-align:center;width:100px;border:3px solid coral">${name}</td>
+                    <td style="text-align:center;width:100px;border:3px solid coral"><img id="curPhoto" src="${photo}" alt="Wrong reference to photo" height="300" width="500"></td>
                     <button type="button" onclick="findCityForEdit('${name}')" id="edit-${id}" style="background-color:red;color:bisque">Edit</button>
                 </tr>
             </table>`);
 }
 
 async function showResult() {
-    const res = (await fetch('http://localhost:8083/pageRequest', {
-        method: 'POST',
+    let curPage = currentPage+1;
+    const res = (await fetch(`http://localhost:8083/api/city/${curPage}`, {
+        method: 'GET',
         credentials: 'include',
         headers: {
             'Content-Type': 'application/json',
@@ -60,7 +61,6 @@ async function showResult() {
         },
         mode: 'cors',
         redirect: 'follow',
-        body: `{"businessEntity": {"currentPage": ${currentPage},"pageSize": ${pageSize}}}`
     }))
     let url = res.url;
     if (url.match("login")) {
@@ -68,14 +68,15 @@ async function showResult() {
     }
     const result = res.json()
         .then(t => {
-            hasNextPage = t["businessEntity"].hasNextPage;
-            hasPreviousPage = t["businessEntity"].hasPreviousPage;
+            hasNextPage = t["hasNextPage"];
+            hasPreviousPage = t["hasPreviousPage"];
             document.getElementById('next').disabled = !hasNextPage;
             document.getElementById('previous').disabled = !hasPreviousPage;
             console.log(hasNextPage);
             console.log(hasPreviousPage);
-            t["businessEntity"].entities.forEach(x => {
-                citiesHtml(x)
+            let i = 1;
+            t["citiesList"].forEach(x => {
+                citiesHtml((currentPage + 1) * pageSize + i++, x.name, x.photo)
             })
         })
     console.log(res);
@@ -84,14 +85,18 @@ async function showResult() {
 function keyup(e) {
     inputTextValue = e.target.value;
     if (e.keyCode === 13) {
-        findCity(inputTextValue).then(r => console.log(r));
+        findCity(inputTextValue).then(() => {
+            currentPage = -1;
+            hasPreviousPage = false;
+            document.getElementById('previous').disabled = true;
+        });
     }
 }
 
 async function findCityForEdit(name) {
     await clearPage();
-    const res = (await fetch('http://localhost:8083/cityFind', {
-        method: 'POST',
+    const res = (await fetch(`http://localhost:8083/api/city?city=${name}`, {
+        method: 'GET',
         credentials: 'include',
         headers: {
             'Content-Type': 'application/json',
@@ -99,11 +104,9 @@ async function findCityForEdit(name) {
         },
         mode: 'cors',
         redirect: 'follow',
-        body: `{"businessEntity":{"entities": [{"id": null, "name": "${name}", "photo": null}]}}`
     })).json()
-        .then(t => t["businessEntity"].entities.forEach(x => {
-            citiesHtml(x)
-        }))
+        .then(t => {citiesHtml(1, t["name"], t["photo"]);
+        })
     const citiesList = document.getElementById('table-of-cities');
     citiesList.insertAdjacentHTML('beforeend', `
         <label for="newName">
@@ -119,16 +122,18 @@ async function findCityForEdit(name) {
 
 async function goUpdateCity() {
     await updateCity(
-        document.getElementById("curId").textContent,
-        document.getElementById("newName").value,
-        document.getElementById("newPhoto").value
+        document.getElementById("curName").textContent,
+        document.getElementById("newName").value == null || document.getElementById("newName").value.length === 0
+            ? document.getElementById("curName").textContent : document.getElementById("newName").value,
+        document.getElementById("newPhoto").value == null || document.getElementById("newPhoto").value.length === 0
+            ? document.getElementById("curPhoto").getAttribute("src") : document.getElementById("newPhoto").value,
     )
 }
 
 async function findCity(name) {
     await clearPage();
-    const res = (await fetch('http://localhost:8083/cityFind', {
-        method: 'POST',
+    const res = (await fetch(`http://localhost:8083/api/city?city=${name}`, {
+        method: 'GET',
         credentials: 'include',
         headers: {
             'Content-Type': 'application/json',
@@ -136,20 +141,17 @@ async function findCity(name) {
         },
         mode: 'cors',
         redirect: 'follow',
-        body: `{"businessEntity":{"entities": [{"id": null, "name": "${name}", "photo": null}]}}`
     })).json()
-        .then(t => t["businessEntity"].entities.forEach(x => {
-            citiesHtml(x)
-        }))
+        .then(t => {citiesHtml(1, t["name"], t["photo"]);
+        })
+    console.log(hasPreviousPage);
     console.log(res);
-    currentPage = -1;
-    hasPreviousPage = false;
 }
 
-async function updateCity(id, name, photo) {
+async function updateCity(oldName, name, photo) {
     await clearPage();
-    const res = (await fetch('http://localhost:8083/cityUpdate', {
-        method: 'POST',
+    const res = (await fetch('http://localhost:8083/api/city', {
+        method: 'PUT',
         credentials: 'include',
         headers: {
             'Content-Type': 'application/json',
@@ -157,7 +159,7 @@ async function updateCity(id, name, photo) {
         },
         mode: 'cors',
         redirect: 'follow',
-        body: `{"businessEntity":{"entities": [{"id": "${id}", "name": "${name}", "photo": "${photo}"}]}}`
+        body: `{"oldName": "${oldName}", "name": "${name}", "photo": "${photo}"}`
     }))
     let status = res.status;
     if (status !== 200) {
@@ -166,8 +168,7 @@ async function updateCity(id, name, photo) {
         return;
     }
     const result = res.json()
-        .then(t => t["businessEntity"].entities.forEach(x => {
-            citiesHtml(x)
-        }))
+        .then(t => {citiesHtml(1, t["name"], t["photo"]);
+        })
     console.log(res);
 }
